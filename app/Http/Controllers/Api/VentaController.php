@@ -12,7 +12,8 @@ class VentaController extends Controller
      */
     public function index()
     {
-        //
+        $ventas = \App\Models\Venta::with('user')->get();
+        return response()->json($ventas);
     }
 
     /**
@@ -20,7 +21,14 @@ class VentaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'total' => 'required|numeric|min:0',
+            'fecha' => 'required|date',
+        ]);
+
+        $venta = \App\Models\Venta::create($request->all());
+        return response()->json(['message' => 'Venta creada exitosamente', 'venta' => $venta], 201);
     }
 
     /**
@@ -28,7 +36,11 @@ class VentaController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $venta = \App\Models\Venta::with('user')->find($id);
+        if (!$venta) {
+            return response()->json(['message' => 'Venta no encontrada'], 404);
+        }
+        return response()->json($venta);
     }
 
     /**
@@ -36,7 +48,19 @@ class VentaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $venta = \App\Models\Venta::find($id);
+        if (!$venta) {
+            return response()->json(['message' => 'Venta no encontrada'], 404);
+        }
+
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'total' => 'required|numeric|min:0',
+            'fecha' => 'required|date',
+        ]);
+
+        $venta->update($request->all());
+        return response()->json(['message' => 'Venta actualizada exitosamente', 'venta' => $venta]);
     }
 
     /**
@@ -44,6 +68,12 @@ class VentaController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $venta = \App\Models\Venta::find($id);
+        if (!$venta) {
+            return response()->json(['message' => 'Venta no encontrada'], 404);
+        }
+
+        $venta->delete();
+        return response()->json(['message' => 'Venta eliminada exitosamente'], 204);
     }
 }

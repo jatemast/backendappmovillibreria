@@ -12,7 +12,8 @@ class AutorController extends Controller
      */
     public function index()
     {
-        //
+        $autores = \App\Models\Autor::all();
+        return response()->json($autores);
     }
 
     /**
@@ -20,7 +21,14 @@ class AutorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'nullable|string|max:255',
+            'pais' => 'nullable|string|max:255',
+        ]);
+
+        $autor = \App\Models\Autor::create($request->all());
+        return response()->json(['message' => 'Autor creado exitosamente', 'autor' => $autor], 201);
     }
 
     /**
@@ -28,7 +36,11 @@ class AutorController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $autor = \App\Models\Autor::find($id);
+        if (!$autor) {
+            return response()->json(['message' => 'Autor no encontrado'], 404);
+        }
+        return response()->json($autor);
     }
 
     /**
@@ -36,7 +48,19 @@ class AutorController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $autor = \App\Models\Autor::find($id);
+        if (!$autor) {
+            return response()->json(['message' => 'Autor no encontrado'], 404);
+        }
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'nullable|string|max:255',
+            'pais' => 'nullable|string|max:255',
+        ]);
+
+        $autor->update($request->all());
+        return response()->json(['message' => 'Autor actualizado exitosamente', 'autor' => $autor]);
     }
 
     /**
@@ -44,6 +68,12 @@ class AutorController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $autor = \App\Models\Autor::find($id);
+        if (!$autor) {
+            return response()->json(['message' => 'Autor no encontrado'], 404);
+        }
+
+        $autor->delete();
+        return response()->json(['message' => 'Autor eliminado exitosamente'], 204);
     }
 }

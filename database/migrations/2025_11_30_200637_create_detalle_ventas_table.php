@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('detalle_ventas', function (Blueprint $table) {
-         $table->id('id_detalle');
-        $table->unsignedBigInteger('id_venta');
-        $table->unsignedBigInteger('id_libro');
-        $table->integer('cantidad')->default(1);
-        $table->decimal('precio_unitario',10,2)->default(0);
-        $table->timestamps();
+            $table->id(); // Utiliza 'id' por convención
+            $table->unsignedBigInteger('venta_id'); // Renombrado de id_venta
+            $table->unsignedBigInteger('libro_id'); // Renombrado de id_libro
+            $table->integer('cantidad')->default(1);
+            $table->decimal('precio_unitario', 10, 2)->default(0);
+            $table->timestamps();
 
-        $table->foreign('id_venta')->references('id_venta')->on('ventas');
-        $table->foreign('id_libro')->references('id_libro')->on('libros');
+            $table->foreign('venta_id')->references('id')->on('ventas')->onDelete('cascade');
+            $table->foreign('libro_id')->references('id')->on('libros')->onDelete('cascade');
         });
     }
 

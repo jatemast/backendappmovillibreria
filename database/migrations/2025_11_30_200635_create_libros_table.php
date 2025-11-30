@@ -12,20 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('libros', function (Blueprint $table) {
-                   $table->id('id_libro');
-        $table->string('titulo',200);
-        $table->unsignedBigInteger('id_autor')->nullable();
-        $table->unsignedBigInteger('id_categoria')->nullable();
-        $table->string('editorial',150)->nullable();
-        $table->decimal('precio',10,2)->default(0);
-        $table->integer('stock')->default(0);
-        $table->date('fecha_publicacion')->nullable();
-        $table->text('descripcion')->nullable();
-        $table->longText('imagen')->nullable();
-        $table->timestamps();
+            $table->id(); // Usa 'id' por convención de Laravel
+            $table->string('titulo', 200);
+            $table->unsignedBigInteger('autor_id');
+            $table->unsignedBigInteger('categoria_id');
+            $table->string('isbn', 255)->unique()->nullable(); // Añadido
+            $table->string('editorial', 150)->nullable();
+            $table->decimal('precio', 10, 2)->default(0);
+            $table->integer('stock')->default(0);
+            $table->date('fecha_publicacion')->nullable();
+            $table->text('descripcion')->nullable();
+            $table->longText('imagen')->nullable();
+            $table->timestamps();
 
-        $table->foreign('id_autor')->references('id_autor')->on('autors');
-        $table->foreign('id_categoria')->references('id_categoria')->on('categorias');
+            $table->foreign('autor_id')->references('id')->on('autors')->onDelete('cascade');
+            $table->foreign('categoria_id')->references('id')->on('categorias')->onDelete('cascade');
         });
     }
 

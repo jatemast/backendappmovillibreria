@@ -6,11 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetalleVenta extends Model
 {
-        protected $primaryKey = 'id_detalle';
-    protected $fillable = ['id_venta','id_libro','cantidad','precio_unitario'];
+    protected $fillable = ['venta_id', 'libro_id', 'cantidad', 'precio_unitario'];
+
+    public function venta()
+    {
+        return $this->belongsTo(Venta::class, 'venta_id');
+    }
 
     public function libro()
     {
-        return $this->belongsTo(Libro::class, 'id_libro');
+        return $this->belongsTo(Libro::class, 'libro_id');
     }
 }
