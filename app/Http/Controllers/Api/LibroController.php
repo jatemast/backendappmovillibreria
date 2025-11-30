@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Libro;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class LibroController extends Controller
 {
@@ -12,8 +14,11 @@ class LibroController extends Controller
      */
     public function index()
     {
-        $libros = \App\Models\Libro::with(['autor', 'categoria'])->get();
-        return response()->json($libros);
+        $libros = Libro::with(['autor', 'categoria'])->get();
+        return response()->json([
+            'status' => true,
+            'libros' => $libros
+        ], 200);
     }
 
     /**
@@ -21,22 +26,30 @@ class LibroController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'titulo' => 'required|string|max:255',
+        $validator = Validator::make($request->all(), [
+            'titulo' => 'required|string|max:200',
             'autor_id' => 'required|exists:autores,id',
             'categoria_id' => 'required|exists:categorias,id',
-            'isbn' => 'nullable|string|max:255|unique:libros',
-            'editorial' => 'nullable|string|max:255',
+            'isbn' => 'nullable|string|max:255|unique:libros,isbn',
+            'editorial' => 'nullable|string|max:150',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'fecha_publicacion' => 'required|date',
+            'fecha_publicacion' => 'nullable|date',
             'descripcion' => 'nullable|string',
-            'imagen' => 'nullable|string|max:255',
+            'imagen' => 'nullable|string', // Considerar validación para URL o base64 si es el caso
         ]);
 
-        $libro = \App\Models\Libro::create($request->all());
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $libro = Libro::create($request->all());
 
         return response()->json([
+            'status' => true,
             'message' => 'Libro creado exitosamente',
             'libro' => $libro
         ], 201);
@@ -47,11 +60,19 @@ class LibroController extends Controller
      */
     public function show(string $id)
     {
-        $libro = \App\Models\Libro::with(['autor', 'categoria'])->find($id);
+        $libro = Libro::with(['autor', 'categoria'])->find($id);
+
         if (!$libro) {
-            return response()->json(['message' => 'Libro no encontrado'], 404);
+            return response()->json([
+                'status' => false,
+                'message' => 'Libro no encontrado'
+            ], 404);
         }
-        return response()->json($libro);
+
+        return response()->json([
+            'status' => true,
+            'libro' => $libro
+        ], 200);
     }
 
     /**
@@ -59,26 +80,42 @@ class LibroController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $libro = \App\Models\Libro::find($id);
+        $libro = Libro::find($id);
+
         if (!$libro) {
-            return response()->json(['message' => 'Libro no encontrado'], 404);
+            return response()->json([
+                'status' => false,
+                'message' => 'Libro no encontrado'
+            ], 404);
         }
 
-        $request->validate([
-            'titulo' => 'required|string|max:255',
-            'autor_id' => 'required|exists:autores,id',
-            'categoria_id' => 'required|exists:categorias,id',
+        $validator = Validator::make($request->all(), [
+            'titulo' => 'sometimes|required|string|max:200',
+            'autor_id' => 'sometimes|required|exists:autores,id',
+            'categoria_id' => 'sometimes|required|exists:categorias,id',
             'isbn' => 'nullable|string|max:255|unique:libros,isbn,' . $id,
-            'editorial' => 'nullable|string|max:255',
-            'precio' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'fecha_publicacion' => 'required|date',
+            'editorial' => 'nullable|string|max:150',
+            'precio' => 'sometimes|required|numeric|min:0',
+            'stock' => 'sometimes|required|integer|min:0',
+            'fecha_publicacion' => 'nullable|date',
             'descripcion' => 'nullable|string',
-            'imagen' => 'nullable|string|max:255',
+            'imagen' => 'nullable|string',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
         $libro->update($request->all());
-        return response()->json(['message' => 'Libro actualizado exitosamente', 'libro' => $libro]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Libro actualizado exitosamente',
+            'libro' => $libro
+        ], 200);
     }
 
     /**
@@ -86,12 +123,20 @@ class LibroController extends Controller
      */
     public function destroy(string $id)
     {
-        $libro = \App\Models\Libro::find($id);
+        $libro = Libro::find($id);
+
         if (!$libro) {
-            return response()->json(['message' => 'Libro no encontrado'], 404);
+            return response()->json([
+                'status' => false,
+                'message' => 'Libro no encontrado'
+            ], 404);
         }
 
         $libro->delete();
-        return response()->json(['message' => 'Libro eliminado exitosamente'], 204);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Libro eliminado exitosamente'
+        ], 200);
     }
 }
